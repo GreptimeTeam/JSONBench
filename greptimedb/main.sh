@@ -57,7 +57,7 @@ benchmark() {
 
     ./start.sh
     ./create.sh
-    ./load_data.sh "$DATA_DIRECTORY" "$size" "$SUCCESS_LOG" "$ERROR_LOG"
+    ./load_data.sh "$DATA_DIRECTORY" "$size" "$SUCCESS_LOG" "$ERROR_LOG" | tee "${OUTPUT_PREFIX}_bluesky_${size}m.load_data"
     ./total_size.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.total_size"
     ./data_size.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.data_size"
     ./index_size.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.index_size"
