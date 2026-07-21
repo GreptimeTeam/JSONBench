@@ -33,6 +33,7 @@ for file in "$DATA_DIRECTORY"/*.json.gz; do
     else
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] Failed for $file. Giving up." >> "$ERROR_LOG"
     fi
+    echo ""
 
     counter=$((counter + 1))
     if [[ $counter -ge $MAX_FILES ]]; then
