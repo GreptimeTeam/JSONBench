@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELEASE_VERSION=v0.13.0-nightly-20250315
+RELEASE_VERSION=v1.1.4
 
 # download greptimedb
 wget -N "https://github.com/GreptimeTeam/greptimedb/releases/download/${RELEASE_VERSION}/greptime-linux-amd64-${RELEASE_VERSION}.tar.gz"
