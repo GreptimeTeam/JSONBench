@@ -16,16 +16,16 @@ ERROR_LOG="$4"
 [[ ! -d "$DATA_DIRECTORY" ]] && { echo "Error: Data directory '$DATA_DIRECTORY' does not exist."; exit 1; }
 [[ ! "$MAX_FILES" =~ ^[0-9]+$ ]] && { echo "Error: MAX_FILES must be a positive integer."; exit 1; }
 
-pushd $DATA_DIRECTORY
+DATA_DIRECTORY="$(cd "$DATA_DIRECTORY" && pwd)"
+shopt -s nullglob
 counter=0
-for file in $(ls *.json.gz | head -n $MAX_FILES); do
+for file in "$DATA_DIRECTORY"/*.json.gz; do
     echo "Processing file: $file"
 
-    curl "http://localhost:4000/v1/events/logs?table=bluesky&pipeline_name=jsonbench&ignore_errors=true" \
-         -H "Content-Type: application/x-ndjson" \
+    curl -i "http://localhost:4000/v1/ingest?table=bluesky&pipeline_name=jsonbench&skip_error=true" \
+         -H "Content-Type: text/plain" \
          -H "Content-Encoding: gzip" \
-         --data-binary @$file
-    echo ""
+         --data-binary @"$file"
 
     first_attempt=$?
     if [[ $first_attempt -eq 0 ]]; then
@@ -33,6 +33,7 @@ for file in $(ls *.json.gz | head -n $MAX_FILES); do
     else
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] Failed for $file. Giving up." >> "$ERROR_LOG"
     fi
+    echo ""
 
     counter=$((counter + 1))
     if [[ $counter -ge $MAX_FILES ]]; then

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o pipefail
+
 DEFAULT_CHOICE=ask
 DEFAULT_DATA_DIRECTORY=~/data/bluesky
 
@@ -15,6 +17,14 @@ ERROR_LOG="${4:-error.log}"
 
 # Define prefix for output files
 OUTPUT_PREFIX="${5:-_m6i.8xlarge}"
+
+# Run install.sh unless explicitly disabled.
+INSTALL="${6:-true}"
+
+if [[ "$INSTALL" != "true" && "$INSTALL" != "false" ]]; then
+    echo "Error: install must be either 'true' or 'false'."
+    exit 1
+fi
 
 # Check if the directory exists
 if [[ ! -d "$DATA_DIRECTORY" ]]; then
@@ -32,7 +42,9 @@ if [ "$CHOICE" = "ask" ]; then
     read -p "Enter the number corresponding to your choice: " CHOICE
 fi
 
-./install.sh
+if [[ "$INSTALL" == "true" ]]; then
+    ./install.sh
+fi
 
 benchmark() {
     local size=$1
@@ -44,12 +56,15 @@ benchmark() {
     fi
 
     ./start.sh
-    ./load_data.sh "$DATA_DIRECTORY" "$size" "$SUCCESS_LOG" "$ERROR_LOG"
+    ./create.sh
+    ./load_data.sh "$DATA_DIRECTORY" "$size" "$SUCCESS_LOG" "$ERROR_LOG" | tee "${OUTPUT_PREFIX}_bluesky_${size}m.load_data"
     ./total_size.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.total_size"
     ./data_size.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.data_size"
     ./index_size.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.index_size"
     ./count.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.count"
     ./run_queries.sh | tee "${OUTPUT_PREFIX}_bluesky_${size}m.results_runtime"
+    ./query_results.sh "${size}m" | tee "${OUTPUT_PREFIX}_bluesky_${size}m.query_results"
+    ./compare_query_results.sh "${size}m" || return 1
     ./drop_tables.sh
 }
 
